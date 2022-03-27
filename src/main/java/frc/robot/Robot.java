@@ -29,7 +29,6 @@ public class Robot extends TimedRobot {
   public void robotInit() {
     m_robotContainer = new RobotContainer();
 
-    driveTrain.gyro.initGyro();
     driveTrain.gyro.calibrate();
 
   }
