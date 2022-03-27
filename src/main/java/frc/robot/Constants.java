@@ -19,7 +19,6 @@ public final class Constants {
     public static final int rightRearMotorPort = 3;    
     public static final int rightFrontMotorPort = 4;
 
-    public static final int kGyro = 0;
     public static final boolean kGyroReversed = false;
     public static final double kTurnP = 1;
 

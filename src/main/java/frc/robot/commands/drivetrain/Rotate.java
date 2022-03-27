@@ -5,7 +5,7 @@
 package frc.robot.commands.drivetrain;
 
 import frc.robot.Constants;
-import frc.robot.subsystems.driveTrain;
+import frc.robot.subsystems.DriveTrain;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 
@@ -13,7 +13,7 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 public class Rotate extends CommandBase {
   @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
   // Create an object for the driveTrain
-  private final driveTrain m_driveTrain;
+  private final DriveTrain m_driveTrain;
 
   // Create two DoubleSupplier objects for power being applied to motors
 
@@ -22,7 +22,7 @@ public class Rotate extends CommandBase {
    *
    * @param driveTrain The subsystem used by this command.
    */
-  public Rotate(driveTrain driveTrain) {
+  public Rotate(DriveTrain driveTrain) {
     // Use the driveTrain subsystem to gain access to its commands
     m_driveTrain = driveTrain;
 
@@ -40,9 +40,9 @@ public class Rotate extends CommandBase {
   public void execute() {
     // Use the Rotate method from the driveTrain subsystem
 
-    double error = 180 - driveTrain.gyro.getAngle();
+    double error = 180 - m_driveTrain.gyro.getAngle();
 
-    driveTrain.drive.tankDrive(Constants.kTurnP * error, -Constants.kTurnP * error);
+    m_driveTrain.drive.tankDrive(Constants.kTurnP * error, -Constants.kTurnP * error);
   }
 
   // Called once the command ends or is interrupted.

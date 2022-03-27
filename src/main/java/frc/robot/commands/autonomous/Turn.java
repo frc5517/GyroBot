@@ -5,7 +5,7 @@
 package frc.robot.commands.autonomous;
 
 import frc.robot.commands.drivetrain.Rotate;
-import frc.robot.subsystems.driveTrain;
+import frc.robot.subsystems.DriveTrain;
 
 import java.util.function.DoubleSupplier;
 
@@ -14,7 +14,7 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 
 public class Turn extends ParallelDeadlineGroup {
   /** Creates a new Rotate. */
-  public Turn(driveTrain drivetrain, DoubleSupplier throttle, DoubleSupplier rotation) {
+  public Turn(DriveTrain drivetrain, DoubleSupplier throttle, DoubleSupplier rotation) {
     // Add the deadline command in the super() call. Add other commands using
     // addCommands().
     super(new WaitCommand(3));

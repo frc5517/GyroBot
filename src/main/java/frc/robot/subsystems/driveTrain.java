@@ -8,13 +8,14 @@ import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
 
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.wpilibj.AnalogGyro;
+import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
-public class driveTrain extends SubsystemBase {
+public class DriveTrain extends SubsystemBase {
   /** Creates a new ExampleSubsystem. */
   static WPI_VictorSPX leftRearMotor = new WPI_VictorSPX(Constants.leftRearMotorPort);
   static WPI_VictorSPX leftFrontMotor = new WPI_VictorSPX(Constants.leftFrontMotorPort);
@@ -22,8 +23,8 @@ public class driveTrain extends SubsystemBase {
   static WPI_VictorSPX rightRearMotor = new WPI_VictorSPX(Constants.rightRearMotorPort);
   static WPI_VictorSPX rightFrontMotor = new WPI_VictorSPX(Constants.rightFrontMotorPort);
   static MotorControllerGroup rightMotors = new MotorControllerGroup(rightFrontMotor, rightRearMotor);
-  public static DifferentialDrive drive = new DifferentialDrive(leftMotors, rightMotors);
-  public static AnalogGyro gyro = new AnalogGyro(Constants.kGyro);
+  public DifferentialDrive drive = new DifferentialDrive(leftMotors, rightMotors);
+  public ADXRS450_Gyro gyro = new ADXRS450_Gyro();
 
   // PID constants should be tuned per robot
   final double LINEAR_P = 0.1;
@@ -34,11 +35,16 @@ public class driveTrain extends SubsystemBase {
   final double ANGULAR_D = 0.0;
   PIDController turnController = new PIDController(ANGULAR_P, 0, ANGULAR_D);
 
-  public driveTrain() {
+  public DriveTrain() {
     leftRearMotor.setNeutralMode(NeutralMode.Coast);
     leftFrontMotor.setNeutralMode(NeutralMode.Coast);
     rightRearMotor.setNeutralMode(NeutralMode.Coast);
     rightFrontMotor.setNeutralMode(NeutralMode.Coast);
+
+    SmartDashboard.putData(gyro);
+
+    gyro.calibrate();
+
   }
 
   public void setMaxOutput(double maxOutput) {
@@ -68,7 +74,7 @@ public class driveTrain extends SubsystemBase {
       drive.setMaxOutput(1);
     }
     else {
-      driveTrain.drive.setMaxOutput(.7);
+      drive.setMaxOutput(.7);
     }
 
         double forwardSpeed;
