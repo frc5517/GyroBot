@@ -7,13 +7,8 @@ package frc.robot.subsystems;
 
 import org.photonvision.PhotonCamera;
 
-import static frc.robot.Constants.kGains_visionCargo;
-import static frc.robot.Constants.kGains_visionDrive;
-import static frc.robot.Constants.kGains_visionTurn;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
@@ -32,9 +27,6 @@ public class DriveTrain extends SubsystemBase {
   static MotorControllerGroup rightMotors = new MotorControllerGroup(rightFrontMotor, rightRearMotor);
   public DifferentialDrive drive = new DifferentialDrive(leftMotors, rightMotors);
   public ADXRS450_Gyro gyro = new ADXRS450_Gyro();
-
-  PIDController m_speedPidController, m_turnPidController, m_cargoController;
-	double visionDrivekP, visionDrivekI, visionDrivekD, visionTurnkP, visionTurnkI, visionTurnkD;
 
   final double CAMERA_HEIGHT_METERS = Units.inchesToMeters(24);
     final double TARGET_HEIGHT_METERS = Units.feetToMeters(5);
@@ -63,10 +55,6 @@ public class DriveTrain extends SubsystemBase {
 
     gyro.calibrate();
 
-    m_speedPidController = new PIDController(kGains_visionDrive.kP, kGains_visionDrive.kI, kGains_visionDrive.kD);
-			m_turnPidController = new PIDController(kGains_visionTurn.kP, kGains_visionTurn.kI, kGains_visionTurn.kD);
-			m_cargoController = new PIDController(kGains_visionCargo.kP, kGains_visionCargo.kI, kGains_visionCargo.kD);
-
   }
 
   public void setMaxOutput(double maxOutput) {
@@ -89,52 +77,40 @@ public class DriveTrain extends SubsystemBase {
     rightMotors.setInverted(false);
     
     // Drive slower
-    if (XboxControls.xboxController.getRawButton(5)) {
+    if (xboxControls.xboxController.getRawButton(5)) {
       drive.setMaxOutput(.4);
     }
-    else if (XboxControls.xboxController.getRawButton(6)) {
+    else if (xboxControls.xboxController.getRawButton(6)) {
       drive.setMaxOutput(1);
     }
     else {
       drive.setMaxOutput(.7);
     }
 
-    
+        double forwardSpeed;
+        double rotationSpeed;
 
-    double forwardspeed = XboxControls.xboxController.getRawAxis(1);
-    double turnspeed = XboxControls.xboxController.getRawAxis(4);
+        forwardSpeed = -xboxControls.xboxController.getRawAxis(1);
 
-    drive.arcadeDrive(forwardspeed, turnspeed);
+        if (xboxControls.xboxController.getRawButton(2)) {
+          // Vision-alignment mode
+          // Query the latest result from PhotonVision
+          var result = camera.getLatestResult();
 
+          if (result.hasTargets()) {
+              // Calculate angular turn power
+              // -1.0 required to ensure positive PID controller effort _increases_ yaw
+              rotationSpeed = -turnController.calculate(result.getBestTarget().getYaw(), 0);
+          } else {
+              // If we have no targets, stay still.
+              rotationSpeed = 0;
+          }
+      } else {
+          // Manual Driver Mode
+          rotationSpeed = xboxControls.xboxController.getRawAxis(4);
+      }
+
+      // Use our forward/turn speeds to control the drivetrain
+      drive.arcadeDrive(forwardSpeed, rotationSpeed);
   }
-
-
-  public void cargoAim(double yaw, double forward) {
-		double forwardspeed = forward;
-		double turnspeed = 0;
-
-		if (yaw != 0) {
-			turnspeed = -m_cargoController.calculate(yaw, 0);
-		}else {
-			turnspeed = 0;
-		}
-
-		NetworkTable visionTable = NetworkTableInstance.getDefault().getTable("Shuffleboard").getSubTable("Vision");
-		visionTable.getEntry("forward drive speed").forceSetDouble(forwardspeed);
-		visionTable.getEntry("Turn speed").forceSetDouble(turnspeed);
-		visionTable.getEntry("Cargo Yaw").forceSetDouble(yaw);
-		teleop_drive(forwardspeed, turnspeed);
-	}
-
-  private void teleop_drive(double forwardspeed, double turnspeed) {
-    forwardspeed = XboxControls.xboxController.getRawAxis(1);
-    turnspeed = XboxControls.xboxController.getRawAxis(4);
-  }
-
-  public void resetVisionPidController() {
-		m_speedPidController.reset();
-		m_turnPidController.reset();
-	}
-
-  }
-
+}
