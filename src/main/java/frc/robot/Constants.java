@@ -14,10 +14,10 @@ package frc.robot;
  */
 public final class Constants {
 
-    public static final int leftRearMotorPort = 1;
-    public static final int leftFrontMotorPort = 2;
-    public static final int rightRearMotorPort = 3;    
-    public static final int rightFrontMotorPort = 4;
+    public static final int leftRearMotorPort = 0;
+    public static final int leftFrontMotorPort = 1;
+    public static final int rightRearMotorPort = 5;    
+    public static final int rightFrontMotorPort = 6;
 
     public static final boolean kGyroReversed = false;
     public static final double kTurnP = 1;

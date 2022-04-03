@@ -4,42 +4,52 @@
 
 package frc.robot.subsystems;
 
-import com.ctre.phoenix.motorcontrol.NeutralMode;
-import com.ctre.phoenix.motorcontrol.can.WPI_VictorSPX;
+
+import org.photonvision.PhotonCamera;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
+import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
 public class DriveTrain extends SubsystemBase {
   /** Creates a new ExampleSubsystem. */
-  static WPI_VictorSPX leftRearMotor = new WPI_VictorSPX(Constants.leftRearMotorPort);
-  static WPI_VictorSPX leftFrontMotor = new WPI_VictorSPX(Constants.leftFrontMotorPort);
+  static Spark leftRearMotor = new Spark(Constants.leftRearMotorPort);
+  static Spark leftFrontMotor = new Spark(Constants.leftFrontMotorPort);
   static MotorControllerGroup leftMotors = new MotorControllerGroup(leftFrontMotor, leftRearMotor);
-  static WPI_VictorSPX rightRearMotor = new WPI_VictorSPX(Constants.rightRearMotorPort);
-  static WPI_VictorSPX rightFrontMotor = new WPI_VictorSPX(Constants.rightFrontMotorPort);
+  static Spark rightRearMotor = new Spark(Constants.rightRearMotorPort);
+  static Spark rightFrontMotor = new Spark(Constants.rightFrontMotorPort);
   static MotorControllerGroup rightMotors = new MotorControllerGroup(rightFrontMotor, rightRearMotor);
   public DifferentialDrive drive = new DifferentialDrive(leftMotors, rightMotors);
   public ADXRS450_Gyro gyro = new ADXRS450_Gyro();
 
-  // PID constants should be tuned per robot
-  final double LINEAR_P = 0.1;
-  final double LINEAR_D = 0.0;
-  PIDController forwardController = new PIDController(LINEAR_P, 0, LINEAR_D);
+  final double CAMERA_HEIGHT_METERS = Units.inchesToMeters(24);
+    final double TARGET_HEIGHT_METERS = Units.feetToMeters(5);
+    // Angle between horizontal and the camera.
+    final double CAMERA_PITCH_RADIANS = Units.degreesToRadians(0);
 
-  final double ANGULAR_P = 0.1;
-  final double ANGULAR_D = 0.0;
-  PIDController turnController = new PIDController(ANGULAR_P, 0, ANGULAR_D);
+    // How far from the target we want to be
+    final double GOAL_RANGE_METERS = Units.feetToMeters(3);
+
+    // Change this to match the name of your camera
+    PhotonCamera camera = new PhotonCamera("photonvision");
+
+    // PID constants should be tuned per robot
+    final double LINEAR_P = 0.1;
+    final double LINEAR_D = 0.0;
+    PIDController forwardController = new PIDController(LINEAR_P, 0, LINEAR_D);
+
+    final double ANGULAR_P = 0.1;
+    final double ANGULAR_D = 0.0;
+    PIDController turnController = new PIDController(ANGULAR_P, 0, ANGULAR_D);
+
 
   public DriveTrain() {
-    leftRearMotor.setNeutralMode(NeutralMode.Coast);
-    leftFrontMotor.setNeutralMode(NeutralMode.Coast);
-    rightRearMotor.setNeutralMode(NeutralMode.Coast);
-    rightFrontMotor.setNeutralMode(NeutralMode.Coast);
 
     SmartDashboard.putData(gyro);
 
@@ -63,8 +73,8 @@ public class DriveTrain extends SubsystemBase {
   @Override
   public void periodic() {
 
-    leftMotors.setInverted(false);
-    rightMotors.setInverted(true);
+    leftMotors.setInverted(true);
+    rightMotors.setInverted(false);
     
     // Drive slower
     if (xboxControls.xboxController.getRawButton(5)) {
@@ -80,17 +90,27 @@ public class DriveTrain extends SubsystemBase {
         double forwardSpeed;
         double rotationSpeed;
 
-        forwardSpeed = xboxControls.xboxController.getRawAxis(1);
-        rotationSpeed = -xboxControls.xboxController.getRawAxis(4);
+        forwardSpeed = -xboxControls.xboxController.getRawAxis(1);
 
-        // Use our forward/turn speeds to control the drivetrain
-        drive.arcadeDrive(forwardSpeed, rotationSpeed);
-    }
+        if (xboxControls.xboxController.getRawButton(2)) {
+          // Vision-alignment mode
+          // Query the latest result from PhotonVision
+          var result = camera.getLatestResult();
 
-  
+          if (result.hasTargets()) {
+              // Calculate angular turn power
+              // -1.0 required to ensure positive PID controller effort _increases_ yaw
+              rotationSpeed = -turnController.calculate(result.getBestTarget().getYaw(), 0);
+          } else {
+              // If we have no targets, stay still.
+              rotationSpeed = 0;
+          }
+      } else {
+          // Manual Driver Mode
+          rotationSpeed = xboxControls.xboxController.getRawAxis(4);
+      }
 
-  @Override
-  public void simulationPeriodic() {
-    // This method will be called once per scheduler run during simulation
+      // Use our forward/turn speeds to control the drivetrain
+      drive.arcadeDrive(forwardSpeed, rotationSpeed);
   }
 }

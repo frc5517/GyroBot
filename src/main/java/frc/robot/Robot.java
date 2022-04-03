@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import edu.wpi.first.wpilibj.AddressableLED;
+import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -17,7 +19,12 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 public class Robot extends TimedRobot {
   private Command m_autonomousCommand;
 
+  public AddressableLED m_led = new AddressableLED(2);
+  public AddressableLEDBuffer m_ledBuffer = new AddressableLEDBuffer(15);
+
   private RobotContainer m_robotContainer;
+
+  
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -26,7 +33,14 @@ public class Robot extends TimedRobot {
   @Override
   public void robotInit() {
     m_robotContainer = new RobotContainer();
+
+    m_led.setLength(m_ledBuffer.getLength());
+    m_led.setData(m_ledBuffer);
+    m_led.start();
+    
   }
+
+
 
   @Override
   public void robotPeriodic() {
