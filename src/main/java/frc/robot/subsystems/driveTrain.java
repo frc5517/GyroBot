@@ -5,15 +5,19 @@
 package frc.robot.subsystems;
 
 
+import java.util.function.DoubleSupplier;
+
 import org.photonvision.PhotonCamera;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.ADXRS450_Gyro;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
@@ -28,6 +32,8 @@ public class DriveTrain extends SubsystemBase {
   public DifferentialDrive drive = new DifferentialDrive(leftMotors, rightMotors);
   public ADXRS450_Gyro gyro = new ADXRS450_Gyro();
 
+  public static DriveTrain instance;
+
   final double CAMERA_HEIGHT_METERS = Units.inchesToMeters(24);
     final double TARGET_HEIGHT_METERS = Units.feetToMeters(5);
     // Angle between horizontal and the camera.
@@ -37,7 +43,7 @@ public class DriveTrain extends SubsystemBase {
     final double GOAL_RANGE_METERS = Units.feetToMeters(3);
 
     // Change this to match the name of your camera
-    PhotonCamera camera = new PhotonCamera("photonvision");
+    PhotonCamera m_camera = new PhotonCamera("photonvision");
 
     // PID constants should be tuned per robot
     final double LINEAR_P = 0.1;
@@ -48,8 +54,12 @@ public class DriveTrain extends SubsystemBase {
     final double ANGULAR_D = 0.0;
     PIDController turnController = new PIDController(ANGULAR_P, 0, ANGULAR_D);
 
+    private double _targetYaw;
+    private boolean _hasTarget;
 
   public DriveTrain() {
+
+    CommandScheduler.getInstance().registerSubsystem(this);
 
     SmartDashboard.putData(gyro);
 
@@ -91,26 +101,54 @@ public class DriveTrain extends SubsystemBase {
         double rotationSpeed;
 
         forwardSpeed = -xboxControls.xboxController.getRawAxis(1);
+        rotationSpeed = xboxControls.xboxController.getRawAxis(4);
 
-        if (xboxControls.xboxController.getRawButton(2)) {
-          // Vision-alignment mode
-          // Query the latest result from PhotonVision
-          var result = camera.getLatestResult();
+        // Use our forward/turn speeds to control the drivetrain
+        drive.arcadeDrive(forwardSpeed, rotationSpeed);
+  }
 
-          if (result.hasTargets()) {
-              // Calculate angular turn power
-              // -1.0 required to ensure positive PID controller effort _increases_ yaw
-              rotationSpeed = -turnController.calculate(result.getBestTarget().getYaw(), 0);
-          } else {
-              // If we have no targets, stay still.
-              rotationSpeed = 0;
-          }
-      } else {
-          // Manual Driver Mode
-          rotationSpeed = xboxControls.xboxController.getRawAxis(4);
+  public void visionTurn(DoubleSupplier speedSupplier, boolean hasTarget, double DEADZONE, double targetYaw) {
+    double joyStickSpeed = speedSupplier.getAsDouble();
+    double speed;
+    this._hasTarget = hasTarget;
+    this._targetYaw = targetYaw;
+    //System.out.println("Turret 'speed': " + speed);
+    
+    if (this._hasTarget){
+      speed = turnController.calculate(this._targetYaw, 0);
+    }
+    else{
+      //deadzone clause, deadzone is 0.12 (or not, check TurretCommand.java)
+      if(Math.abs(joyStickSpeed) > DEADZONE) {
+        speed = joyStickSpeed*.75;
       }
+      else {
+        speed = 0;
+      }
+    }
 
-      // Use our forward/turn speeds to control the drivetrain
-      drive.arcadeDrive(forwardSpeed, rotationSpeed);
+    drive.setMaxOutput(speed);
+  }
+
+  public static DriveTrain getInstance() {
+    if (instance == null) {
+      instance = new DriveTrain();
+    }
+    return instance;
+  }
+
+  public void stopDriveTrain() {
+    drive.stopMotor();
+  }
+
+  public void setTeamPipeline() {
+    int pipelineIndex;
+    if (DriverStation.getAlliance() == DriverStation.Alliance.Blue) {
+      pipelineIndex = 1;
+      m_camera.setPipelineIndex(pipelineIndex);
+    }else if (DriverStation.getAlliance() == DriverStation.Alliance.Red) {
+      pipelineIndex = 0;
+      m_camera.setPipelineIndex(pipelineIndex);
+    }
   }
 }

@@ -11,8 +11,11 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.autonomous.Turn;
+import frc.robot.commands.drivetrain.AimAtBall;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.xboxControls;
+import frc.robot.subsystems.vision.BallVision;
+import frc.robot.subsystems.vision.TargetVision;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -21,6 +24,11 @@ import frc.robot.subsystems.xboxControls;
  * subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
+
+  private XboxController _controller;
+  public static DriveTrain _driveTrain = DriveTrain.getInstance();
+  public static TargetVision _targetVision = TargetVision.getInstance();
+  public static BallVision _ballVision = BallVision.getInstance();
   
   private final DriveTrain m_drivetrain = new DriveTrain();
 
@@ -29,6 +37,7 @@ public class RobotContainer {
   private final Turn m_turn = new Turn(
     m_drivetrain, () -> .5, () -> .5
   );
+
 
   public RobotContainer() {
     
@@ -47,9 +56,9 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
 
-    JoystickButton A = new JoystickButton(xboxControls.xboxController, 1);
-
-    A.whenPressed(m_turn);
+    new JoystickButton(xboxControls.xboxController, 1).whenPressed(m_turn);
+    
+    _driveTrain.setDefaultCommand(new AimAtBall(_driveTrain, _ballVision, _controller));
 
   }
 

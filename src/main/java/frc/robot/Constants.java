@@ -22,6 +22,11 @@ public final class Constants {
     public static final boolean kGyroReversed = false;
     public static final double kTurnP = 1;
 
+    public final static int BluePipeline = 0;
+    public final static int RedPipeline = 1;
+    public final static int Tape01 = 0;
+
+
 
 public static final class OIConstants {
     public static final int xboxControllerPort = 0;
