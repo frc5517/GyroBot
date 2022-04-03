@@ -8,12 +8,12 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.OIConstants;
 
-public class xboxControls extends SubsystemBase {
+public class XboxControls extends SubsystemBase {
   /** Creates a new XboxController. */
 
   public static XboxController xboxController = new XboxController(OIConstants.xboxControllerPort);
 
-  public xboxControls() {}
+  public XboxControls() {}
 
   @Override
   public void periodic() {}

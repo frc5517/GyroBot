@@ -12,7 +12,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.commands.autonomous.Turn;
 import frc.robot.subsystems.DriveTrain;
-import frc.robot.subsystems.xboxControls;
+import frc.robot.subsystems.Vision;
+import frc.robot.subsystems.XboxControls;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -21,6 +22,8 @@ import frc.robot.subsystems.xboxControls;
  * subsystems, commands, and button mappings) should be declared here.
  */
 public class RobotContainer {
+
+  Vision m_vision;
   
   private final DriveTrain m_drivetrain = new DriveTrain();
 
@@ -31,6 +34,9 @@ public class RobotContainer {
   );
 
   public RobotContainer() {
+
+    m_vision = new Vision();
+    m_vision.setTeamPipeline();
     
     m_chooser.setDefaultOption("Turn", m_turn);
 
@@ -47,7 +53,7 @@ public class RobotContainer {
    */
   private void configureButtonBindings() {
 
-    JoystickButton A = new JoystickButton(xboxControls.xboxController, 1);
+    JoystickButton A = new JoystickButton(XboxControls.xboxController, 1);
 
     A.whenPressed(m_turn);
 

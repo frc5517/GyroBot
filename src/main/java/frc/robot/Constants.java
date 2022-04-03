@@ -22,6 +22,10 @@ public final class Constants {
     public static final boolean kGyroReversed = false;
     public static final double kTurnP = 1;
 
+    public final static Gains kGains_visionDrive =    new Gains(0.4, 0.0,  0, 0,         100,  1.0);
+	public final static Gains kGains_visionTurn =     new Gains(0.02, 0, 0, 0, 100, 1.0);
+	public final static Gains kGains_visionCargo =    new Gains(0.015, 0, 0, 0, 100, 1.0);
+
 
 public static final class OIConstants {
     public static final int xboxControllerPort = 0;

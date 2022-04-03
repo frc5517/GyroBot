@@ -40,6 +40,8 @@ public class Rotate extends CommandBase {
   public void execute() {
     // Use the Rotate method from the driveTrain subsystem
 
+    m_driveTrain.drive.setMaxOutput(.5);
+
     double error = 180 - m_driveTrain.gyro.getAngle();
 
     m_driveTrain.drive.tankDrive(Constants.kTurnP * error, -Constants.kTurnP * error);
