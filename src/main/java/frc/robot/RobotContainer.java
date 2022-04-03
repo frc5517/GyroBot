@@ -40,6 +40,8 @@ public class RobotContainer {
 
 
   public RobotContainer() {
+
+    _controller = xboxControls.xboxController;
     
     m_chooser.setDefaultOption("Turn", m_turn);
 
